@@ -73,9 +73,26 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)]
 );
 
-export const userRelations = relations(user, ({ many }) => ({
+export const pendingUserApproval = pgTable("pending_user_approval", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+  approvedAt: timestamp("approved_at"),
+  approvedBy: text("approved_by"), // Can be admin user ID
+});
+
+export const userRelations = relations(user, ({ one, many }) => ({
   sessions: many(session),
   accounts: many(account),
+  pendingApproval: one(pendingUserApproval, {
+    fields: [user.id],
+    references: [pendingUserApproval.userId],
+  }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -91,3 +108,13 @@ export const accountRelations = relations(account, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+export const pendingUserApprovalRelations = relations(
+  pendingUserApproval,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [pendingUserApproval.userId],
+      references: [user.id],
+    }),
+  })
+);

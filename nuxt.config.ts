@@ -6,6 +6,9 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  modules: ["@nuxt/ui"],
+  modules: ["@nuxt/ui", "@nuxt/image"],
   css: ["~/assets/css/main.css"],
+  ui: {
+    colorMode: false,
+  },
 });
